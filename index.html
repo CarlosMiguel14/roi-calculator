@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imbema — ROI Calculator Tussenbemetering & EMS</title>
+<meta name="description" content="Bereken de terugverdientijd en het netto voordeel van tussenbemetering en EMS. Een tool van Imbema Asset Solutions.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="Imbema ROI Calculator — Tussenbemetering &amp; EMS">
+<meta property="og:description" content="Bereken direct de businesscase voor energiemeting bij uw klant.">
+<style>
+:root{
+  --navy:#002147;--mid:#1B4F84;--light:#2E75B6;
+  --cyan:#00AEEF;--cyan-dim:#E6F6FD;
+  --bg:#F4F7FB;--white:#fff;--border:#DDE6F0;
+  --text:#1A2E42;--muted:#5A7A96;
+  --green-bg:#E6F4EE;--green:#0A6640;
+  --amber-bg:#FFF3CD;--amber:#7A4F00;
+  --blue-bg:#E6F1FB;--red:#A32D2D;
+  --r:12px;--rs:8px;
+  --sh:0 1px 3px rgba(0,33,71,.08),0 4px 16px rgba(0,33,71,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── TOPBAR ── */
+.bar{background:var(--navy);height:56px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--cyan);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-ring{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center}
+.logo-dot{width:11px;height:11px;border-radius:50%;background:var(--cyan)}
+.logo-name{font-size:16px;font-weight:600;color:#fff}
+.logo-tag{font-size:11px;color:rgba(255,255,255,.45)}
+.bar-right{display:flex;align-items:center;gap:10px}
+.bar-label{font-size:12px;color:rgba(255,255,255,.38)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);font-size:12px;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;font-weight:500;cursor:pointer;border:none;transition:opacity .15s,transform .1s;white-space:nowrap;text-decoration:none}
+.btn:hover{opacity:.85}.btn:active{transform:scale(.98)}
+.btn-cyan{background:var(--cyan);color:var(--navy)}
+.btn-ghost{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28)}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--mid) 100%);padding:1.75rem 2rem 1.5rem}
+.hero-in{max-width:1140px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.hero h1{font-size:24px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:.3rem}
+.hero h1 em{color:var(--cyan);font-style:normal}
+.hero p{font-size:13px;color:rgba(255,255,255,.58)}
+.hero-btns{display:flex;gap:.6rem;flex-shrink:0}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1140px;margin:0 auto;padding:1.75rem 2rem;display:grid;grid-template-columns:400px 1fr;gap:1.5rem;align-items:start}
+
+/* ── PANELS ── */
+.panel{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);margin-bottom:1.2rem;overflow:visible}
+.panel:last-child{margin-bottom:0}
+.ph{background:var(--navy);padding:.75rem 1.25rem;display:flex;align-items:center;gap:8px;border-radius:var(--r) var(--r) 0 0}
+.ph-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);flex-shrink:0}
+.ph h2{font-size:11px;font-weight:500;color:#fff;letter-spacing:.06em;text-transform:uppercase}
+.pb{padding:1.2rem}
+
+/* ── FIELDS ── */
+.field{margin-bottom:1.1rem}.field:last-child{margin-bottom:0}
+.fl{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.fl label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.fv{font-size:13px;font-weight:600;color:var(--mid);font-family:'Consolas','Courier New',monospace}
+.fh{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.5}
+.divider{height:1px;background:var(--border);margin:.9rem 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+
+/* ── TOOLTIP ── */
+#tip{position:fixed;background:var(--navy);color:#fff;font-size:12px;line-height:1.6;padding:9px 13px;border-radius:8px;max-width:260px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 20px rgba(0,33,71,.3)}
+.tipbtn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--cyan-dim);color:var(--mid);font-size:10px;font-weight:700;cursor:help;flex-shrink:0;transition:background .15s}
+.tipbtn:hover{background:var(--cyan);color:var(--navy)}
+
+/* ── UNIT TOGGLE ── */
+.toggle{display:flex;border:1px solid var(--border);border-radius:var(--rs);overflow:hidden}
+.tob{flex:1;padding:7px 0;font-size:12px;font-weight:500;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--muted);border:none;cursor:pointer;transition:background .15s,color .15s}
+.tob.on{background:var(--mid);color:#fff}
+
+/* ── INPUTS ── */
+select{width:100%;height:36px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:13px;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;padding:0 28px 0 10px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%235A7A96' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,174,239,.12)}
+input[type=text]{width:100%;height:36px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);color:var(--text);font-size:13px;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;padding:0 10px}
+input[type=text]:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,174,239,.12)}
+input[type=text]::placeholder{color:var(--muted)}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;margin-top:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--mid);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,33,71,.22);cursor:pointer;transition:background .15s,transform .1s}
+input[type=range]:hover::-webkit-slider-thumb{background:var(--cyan);transform:scale(1.1)}
+
+/* ── SAVING BOX ── */
+.sbox{background:var(--cyan-dim);border-radius:var(--rs);padding:.7rem 1rem;margin-top:6px;border-left:3px solid var(--cyan)}
+.srow{display:flex;justify-content:space-between;font-size:12px;color:var(--mid);margin-bottom:3px}
+.srow:last-child{margin-bottom:0;font-weight:600;border-top:1px dashed rgba(0,174,239,.3);padding-top:5px;margin-top:5px;font-size:13px}
+.stitle{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+
+/* ── KPI ── */
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1.2rem}
+.kc{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:.875rem 1rem;box-shadow:0 1px 3px rgba(0,33,71,.07)}
+.kc.hi{background:var(--navy);border-color:var(--navy)}
+.kl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px}
+.kc.hi .kl{color:rgba(255,255,255,.5)}
+.kv{font-size:20px;font-weight:600;color:var(--text);font-family:'Consolas','Courier New',monospace;line-height:1}
+.kc.hi .kv{color:#fff}
+.ks{font-size:11px;color:var(--muted);margin-top:4px}
+.kc.hi .ks{color:rgba(255,255,255,.4)}
+
+/* ── VERDICT ── */
+.verdict{border-radius:var(--r);padding:.875rem 1.1rem;display:flex;align-items:flex-start;gap:10px;margin-bottom:1.2rem}
+.vi{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
+
+/* ── CHART PANELS ── */
+.cp{background:var(--white);border-radius:var(--r);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,33,71,.07);overflow:hidden;margin-bottom:1rem}
+.cp:last-child{margin-bottom:0}
+.ch{padding:.65rem 1.25rem;border-bottom:1px solid var(--border);font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px}
+.cdot{width:6px;height:6px;border-radius:50%;background:var(--cyan)}
+.cb{padding:1rem 1.25rem}
+
+/* ── BAR CHART ── */
+.brow{display:flex;align-items:center;gap:10px;margin-bottom:8px}.brow:last-child{margin-bottom:0}
+.blbl{font-size:12px;color:var(--muted);width:130px;text-align:right;flex-shrink:0}
+.btrack{flex:1;height:24px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bfill{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 9px;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:52px}
+.bval{font-size:11px;font-weight:600;color:#fff;font-family:'Consolas','Courier New',monospace;white-space:nowrap}
+
+/* ── TIMELINE ── */
+.trow{display:grid;grid-template-columns:52px 1fr 88px;gap:9px;align-items:center;margin-bottom:7px}.trow:last-child{margin-bottom:0}
+.tq{font-size:12px;color:var(--muted);font-weight:500}
+.ttrack{height:17px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.tfill{height:100%;border-radius:3px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.tval{font-size:12px;font-weight:600;font-family:'Consolas','Courier New',monospace;text-align:right}
+
+/* ── SCENARIO TABLE ── */
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{background:var(--navy);color:#fff;padding:8px 12px;text-align:left;font-weight:500;font-size:11px}
+.stbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:nth-child(even) td{background:var(--bg)}
+.stbl td.g{color:var(--green);font-weight:600}
+.stbl td.w{color:var(--amber);font-weight:600}
+.stbl td.r{color:var(--red);font-weight:600}
+.stbl td.n{font-family:'Consolas','Courier New',monospace}
+
+/* ── BENCHMARK ── */
+.bench-row{display:flex;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border);gap:.75rem;font-size:12px}
+.bench-row:last-child{border-bottom:none}
+.bench-lbl{color:var(--muted);width:160px;flex-shrink:0}
+.bench-bars{flex:1;display:flex;flex-direction:column;gap:3px}
+.bench-bar-wrap{height:9px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.bench-bar{height:100%;border-radius:3px;transition:width .45s}
+.bench-meta{font-size:10px;color:var(--muted);display:flex;justify-content:space-between}
+.bench-val{font-family:'Consolas','Courier New',monospace;font-weight:600;color:var(--mid);width:70px;text-align:right;flex-shrink:0}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;background:var(--cyan-dim);color:var(--mid);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:.9rem}
+
+/* ── MODAL ── */
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,21,47,.6);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;visibility:hidden;opacity:0;transition:opacity .2s,visibility .2s}
+.overlay.show{visibility:visible;opacity:1}
+.modal{background:var(--white);border-radius:var(--r);width:100%;max-width:800px;margin:auto;box-shadow:0 8px 48px rgba(0,21,47,.3)}
+.mh{background:var(--navy);padding:1.1rem 1.5rem;border-radius:var(--r) var(--r) 0 0;display:flex;align-items:center;justify-content:space-between}
+.mh-txt h2{font-size:16px;font-weight:600;color:#fff}
+.mh-txt p{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
+.mclose{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;line-height:1}
+.mclose:hover{background:rgba(255,255,255,.25)}
+.mb{padding:1.5rem}
+.hsec{margin-bottom:1.5rem}
+.hsec:last-child{margin-bottom:0}
+.hsec h3{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:.65rem;padding-bottom:.4rem;border-bottom:2px solid var(--cyan);display:flex;align-items:center;gap:8px}
+.hnum{width:22px;height:22px;border-radius:50%;background:var(--cyan);color:var(--navy);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.hcard{background:var(--bg);border-radius:var(--rs);padding:.875rem 1rem;border:1px solid var(--border)}
+.hcard h4{font-size:12px;font-weight:600;color:var(--mid);margin-bottom:.3rem}
+.hcard p{font-size:12px;color:var(--muted);line-height:1.6}
+.htag{display:inline-block;background:var(--cyan-dim);color:var(--mid);font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-bottom:.4rem}
+.htbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:.5rem}
+.htbl th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-weight:500;font-size:11px}
+.htbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--muted);line-height:1.55;vertical-align:top}
+.htbl tr:last-child td{border-bottom:none}
+.htbl tr:nth-child(even) td{background:var(--bg)}
+.htbl td:first-child{font-weight:600;color:var(--mid);white-space:nowrap}
+.htip{background:var(--cyan-dim);border-left:3px solid var(--cyan);border-radius:0 var(--rs) var(--rs) 0;padding:.7rem 1rem;font-size:12px;color:var(--mid);line-height:1.6;margin-top:.75rem}
+.htip strong{font-weight:600;color:var(--navy)}
+
+/* ── PRINT ── */
+.print-only{display:none}
+@media print{
+  .bar,.hero-btns,.input-col,.overlay{display:none!important}
+  .print-only{display:block}
+  body{background:#fff;font-size:11px}
+  .wrap{grid-template-columns:1fr;padding:0;gap:1rem}
+  .cp,.kc,.verdict,.ph{print-color-adjust:exact;-webkit-print-color-adjust:exact;break-inside:avoid}
+}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:1.25rem 2rem;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:.5rem}
+.footer strong{color:var(--mid)}
+
+@media(max-width:900px){.wrap{grid-template-columns:1fr;padding:1rem}.krow{grid-template-columns:repeat(2,1fr)}.hero-in{flex-direction:column;align-items:flex-start}.grid2{grid-template-columns:1fr}.hgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     WACHTWOORDBEVEILIGING
+     Verander TOOL_PASSWORD hieronder naar uw eigen wachtwoord
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  const PASS = 'imbema2026'; // ← WIJZIG DIT WACHTWOORD
+  const KEY  = 'imbema_roi_auth';
+  if(sessionStorage.getItem(KEY) === PASS) return; // al ingelogd
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.style.display = 'none';
+    var overlay = document.createElement('div');
+    overlay.id = 'login-screen';
+    overlay.style.cssText = 'position:fixed;inset:0;background:#002147;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Segoe UI,Arial,sans-serif';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:2.5rem 2.5rem;width:100%;max-width:380px;box-shadow:0 8px 48px rgba(0,0,0,.35);text-align:center">
+        <div style="width:48px;height:48px;border-radius:50%;border:3px solid #002147;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;background:#002147">
+          <div style="width:16px;height:16px;border-radius:50%;background:#00AEEF"></div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:#5A7A96;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.25rem">Imbema Asset Solutions</div>
+        <div style="font-size:20px;font-weight:600;color:#002147;margin-bottom:.25rem">ROI Calculator</div>
+        <div style="font-size:13px;color:#5A7A96;margin-bottom:1.5rem">Intern gebruik — voer het wachtwoord in</div>
+        <input id="pw-input" type="password" placeholder="Wachtwoord" autocomplete="current-password"
+          style="width:100%;height:44px;border:2px solid #DDE6F0;border-radius:8px;padding:0 14px;font-size:14px;font-family:inherit;outline:none;margin-bottom:.75rem;transition:border-color .15s"
+          onfocus="this.style.borderColor='#00AEEF'" onblur="this.style.borderColor='#DDE6F0'">
+        <div id="pw-err" style="color:#A32D2D;font-size:12px;margin-bottom:.75rem;display:none">Onjuist wachtwoord — probeer opnieuw</div>
+        <button id="pw-btn"
+          style="width:100%;height:44px;background:#00AEEF;color:#002147;border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .15s"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          Inloggen
+        </button>
+        <div style="font-size:11px;color:#5A7A96;margin-top:1.25rem">Geen toegang? Neem contact op met Asset Solutions</div>
+      </div>`;
+    document.body.parentNode.insertBefore(overlay, document.body);
+    document.body.style.display = '';
+    function tryLogin(){
+      var val = document.getElementById('pw-input').value;
+      if(val === PASS){
+        sessionStorage.setItem(KEY, PASS);
+        overlay.style.display = 'none';
+      } else {
+        document.getElementById('pw-err').style.display = 'block';
+        document.getElementById('pw-input').style.borderColor = '#A32D2D';
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').focus();
+      }
+    }
+    document.getElementById('pw-btn').addEventListener('click', tryLogin);
+    document.getElementById('pw-input').addEventListener('keydown', function(e){ if(e.key==='Enter') tryLogin(); });
+    document.getElementById('pw-input').focus();
+  });
+})();
+</script>
+
+
+<!-- Tooltip -->
+<div id="tip"></div>
+
+<!-- Help Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="mh">
+      <div class="mh-txt">
+        <h2>Handleiding — Imbema ROI Calculator</h2>
+        <p>Leer hoe u de calculator optimaal gebruikt in een verkoopgesprek</p>
+      </div>
+      <button class="mclose" id="mclose">&#x2715;</button>
+    </div>
+    <div class="mb">
+
+      <div class="hsec">
+        <h3><span class="hnum">1</span>Klantgegevens invullen</h3>
+        <div class="hgrid">
+          <div class="hcard">
+            <div class="htag">Bedrijfsnaam &amp; contact</div>
+            <h4>Waarom invullen?</h4>
+            <p>De naam verschijnt op de PDF-uitvoer en in de opgeslagen bestandsnaam. Zo heeft elke klant zijn eigen berekening.</p>
+          </div>
+          <div class="hcard">
+            <div class="htag">Sector</div>
+            <h4>Automatische standaardwaarden</h4>
+            <p>Bij het kiezen van een sector laadt de calculator realistische standaardwaarden voor die branche. U past daarna alles handmatig aan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="hsec">
+        <h3><span class="hnum">2</span>Energieprofiel instellen</h3>
+        <table class="htbl">
+          <thead><tr><th>Veld</th><th>Uitleg</th><th>Tip voor het salesgesprek</th></tr></thead>
+          <tbody>
+            <tr><td>Eenheid</td><td>Kies kWh of MWh — beide sliders passen automatisch mee. kWh voor kleine bedrijven, MWh voor industrie.</td><td>Gebruik dezelfde eenheid als op de factuur van de klant staat.</td></tr>
+            <tr><td>Jaarlijks verbruik</td><td>Totaal energieverbruik per jaar. Staat op de jaarafrekening. Stapgrootte: 1–100 MWh per 1 MWh, daarboven per 10 MWh. In kWh: tot 100.000 per 1.000, daarboven per 10.000.</td><td>Vraag naar de jaarfactuur. Een schatting is prima — de calculator geeft direct de impact.</td></tr>
+            <tr><td>Energieprijs</td><td>De alles-in prijs inclusief netkosten en belastingen. Instelbaar tot €3,00/kWh voor perioden met hoge marktprijzen.</td><td>Normaal: €0,11–0,15/kWh. Tijdens energiecrisissen (2022) tijdelijk boven €0,50/kWh.</td></tr>
+            <tr><td>Besparing door inzicht</td><td>Percentage dat de klant bespaart door inzicht in verbruikspatronen. De blauwe box splitst dit uit in drie bronnen: stand-by (40%), lekverliezen (35%), piekbelasting (25%).</td><td>Gebruik 8% als conservatief uitgangspunt. Typisch haalbaar: 10–15%. Bewijs met praktijkcases.</td></tr>
+          </tbody>
+        </table>
+        <div class="htip"><strong>Praktijkregel:</strong> Tussenbemetering levert gemiddeld 10–12% energiebesparing op in de industrie. Klanten zien voor het eerst waar energie werkelijk naartoe gaat — en beginnen dan vanzelf te sturen.</div>
+      </div>
+
+      <div class="hsec">
+        <h3><span class="hnum">3</span>Projectconfiguratie instellen</h3>
+        <table class="htbl">
+          <thead><tr><th>Veld</th><th>Uitleg</th><th>Advies</th></tr></thead>
+          <tbody>
+            <tr><td>Pakket</td><td><strong>Inzicht (€299/mnd):</strong> Meters + dashboard + basis SLA.<br><strong>Controle (€599/mnd):</strong> Plus EMS-koppeling, alerts en EED/CSRD export.<br><strong>Partner:</strong> Maatwerk multi-site.</td><td>Start altijd met Controle. Dit dekt de meeste behoeften en geeft de beste ROI-uitstraling.</td></tr>
+            <tr><td>Installatiekosten</td><td>Eenmalige kosten: hardware, engineering, installatie, inbedrijfstelling. Richtlijn: €800–1.500 per meetpunt.</td><td>Bij bezwaar op prijs: wijs op de As-a-Service structuur — geen grote capex, maar een voorspelbare maandlast.</td></tr>
+            <tr><td>Netcongestie</td><td>Financiële waarde van het vermijden van netproblemen: boetes, productiestilstand, of waarde van vrijgekomen capaciteit.</td><td>Zet op "Hoog" of "Kritisch" bij industrieklanten op de netcongestiewachtlijst.</td></tr>
+            <tr><td>EED/CSRD waarde</td><td>Besparing op externe auditkosten + waarde van betere ESG-score. EED-audit kost typisch €5.000–15.000/jaar bij externe partij.</td><td>Gebruik €8.000 als standaard voor bedrijven met EED-auditplicht. Verhoog bij aanbestedingen of bankfinancieringen.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hsec">
+        <h3><span class="hnum">4</span>Resultaten begrijpen</h3>
+        <div class="hgrid">
+          <div class="hcard"><div class="htag">Terugverdientijd</div><h4>Groen = ≤ 18 maanden</h4><p>Dit is de drempel die de meeste CFO's hanteren. Gebruik dit als primair verkoopargument richting directie en financieel management.</p></div>
+          <div class="hcard"><div class="htag">3-jaar netto voordeel</div><h4>Het totaalplaatje</h4><p>Netto voordeel na aftrek van alle kosten over 3 jaar. Dit getal resonneert bij directie en eigenaren — toont de totale waardecreatie.</p></div>
+          <div class="hcard"><div class="htag">Cashflow grafiek</div><h4>Wanneer terugverdiend?</h4><p>Staafdiagram per jaar. Rood = nog niet terugverdiend, groen = positief rendement. Ideaal om aan een CFO te tonen.</p></div>
+          <div class="hcard"><div class="htag">Scenario-analyse</div><h4>Voor bezwaarbehandeling</h4><p>Toont dat ook bij tegenvallende besparing de investering terugverdiend wordt. Neemt onzekerheid weg bij sceptische klanten.</p></div>
+          <div class="hcard"><div class="htag">Benchmark</div><h4>Vergelijking met sector</h4><p>Hoe verhoudt de klant zich tot het sectorgemiddelde? Geeft sociale bewijskracht: anderen in uw branche doen dit al.</p></div>
+          <div class="hcard"><div class="htag">Maandelijkse kosten</div><h4>Tastbaar voor de boekhouder</h4><p>Energiekosten voor en na per maand. Maakt besparing concreet als maandelijks bedrag — begrijpelijker dan jaargetallen.</p></div>
+        </div>
+        <div class="htip"><strong>Tip:</strong> Begin altijd met de 4 KPI-kaarten. Terugverdientijd en 3-jaar netto voordeel zijn de twee getallen die elke beslisser wil horen. De grafieken zijn de onderbouwing voor doorvragen.</div>
+      </div>
+
+      <div class="hsec">
+        <h3><span class="hnum">5</span>Opslaan en delen</h3>
+        <div class="hgrid">
+          <div class="hcard"><div class="htag">💾 Opslaan als bestand</div><h4>Bestandsnaam = klantnaam</h4><p>Slaat de complete pagina op als HTML-bestand inclusief alle ingevulde waarden. Open het later en alles staat er nog in. Stuur als bijlage of bewaar per prospect.</p></div>
+          <div class="hcard"><div class="htag">🖨️ Afdrukken / PDF</div><h4>Professionele PDF voor het dossier</h4><p>Kies in Chrome of Edge "Opslaan als PDF". De invoerkolom verdwijnt — alleen resultaten en klantgegevens zijn zichtbaar. Klaar om mee te sturen met een offerte.</p></div>
+        </div>
+        <div class="htip"><strong>Aanbevolen werkwijze:</strong> Vul de calculator in tijdens of direct na het klantgesprek. Sla op als HTML met de klantnaam. Maak een PDF voor de offerte. Bewaar het HTML-bestand in uw CRM-dossier voor eventuele herijking later.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Topbar -->
+<div class="bar">
+  <div class="logo">
+    <div class="logo-ring"><div class="logo-dot"></div></div>
+    <div><div class="logo-name">imbema</div><div class="logo-tag">Technical solutions for generations</div></div>
+  </div>
+  <div class="bar-right">
+    <span class="bar-label">Asset Solutions — ROI Calculator v3.1</span>
+    <button class="btn btn-cyan" id="btn-help">? Handleiding</button>
+  </div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-in">
+    <div>
+      <h1>ROI-calculator <em>tussenbemetering &amp; EMS</em></h1>
+      <p>Vul het klantprofiel in en bereken direct de terugverdientijd, scenario's en benchmarks.</p>
+    </div>
+    <div class="hero-btns">
+      <button class="btn btn-ghost" id="btn-save">💾 Opslaan als bestand</button>
+      <button class="btn btn-cyan" onclick="window.print()">🖨️ Afdrukken / PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- INPUT -->
+  <div class="input-col">
+
+    <div class="panel">
+      <div class="ph"><div class="ph-dot"></div><h2>Klantgegevens</h2></div>
+      <div class="pb">
+        <div class="grid2">
+          <div class="field">
+            <div class="fl"><label>Bedrijfsnaam</label></div>
+            <input type="text" id="k-naam" placeholder="bijv. BASF Nederland">
+          </div>
+          <div class="field">
+            <div class="fl"><label>Contactpersoon</label></div>
+            <input type="text" id="k-contact" placeholder="bijv. Jan de Vries">
+          </div>
+        </div>
+        <div class="field" style="margin-top:.5rem">
+          <div class="fl"><label>Sector</label></div>
+          <select id="s-sector">
+            <option value="industrie">Industrie (food / chemie / metaal)</option>
+            <option value="logistiek">Distributiecentrum / logistiek</option>
+            <option value="vastgoed">Vastgoed / multi-tenant</option>
+            <option value="recreatie">Recreatiepark / vakantiepark</option>
+            <option value="zorg">Zorginstelling / onderwijs</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label>Aantal meetpunten</label>
+            <span class="fv" id="v-meters">20</span>
+          </div>
+          <input type="range" id="s-meters" min="1" max="200" step="1" value="20">
+          <div class="fh">Afzonderlijke meters voor elektra, gas, warmte en/of water.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-dot"></div><h2>Energieprofiel</h2></div>
+      <div class="pb">
+        <div class="field">
+          <div class="fl"><label>Eenheid voor verbruik &amp; prijs</label></div>
+          <div class="toggle">
+            <button class="tob on" id="btn-kwh">kWh &amp; €/kWh</button>
+            <button class="tob" id="btn-mwh">MWh &amp; €/MWh</button>
+          </div>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label id="cons-lbl">Jaarlijks energieverbruik (kWh)</label>
+            <span class="fv" id="v-cons">500.000 kWh</span>
+          </div>
+          <input type="range" id="s-cons" min="1" max="1000" step="1" value="500">
+          <div class="fh" id="h-cons">= 500 MWh · Klein kantoor ≈ 50k–200k kWh · Fabriek 1M–50M kWh</div>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label id="price-lbl">Energieprijs (€/kWh)</label>
+            <span class="fv" id="v-price">€ 0,12</span>
+          </div>
+          <input type="range" id="s-price" min="1" max="300" step="1" value="12">
+          <div class="fh" id="h-price">Incl. netkosten &amp; belastingen. Normaal ≈ €0,11–0,15/kWh · Piekprijzen tot €3,00/kWh</div>
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <div class="fl">
+            <label>
+              Verwachte besparing door inzicht
+              <span class="tipbtn" data-tip="Door tussenbemetering weet u precies waar energie verloren gaat. Typische besparingen: nachtelijk stand-by reduceren (40%), lekverliezen in stoom en perslucht opsporen (35%), piekbelasting afvlakken (25%). Praktijkcases tonen 8–15% totale besparing.">?</span>
+            </label>
+            <span class="fv" id="v-saving">10%</span>
+          </div>
+          <input type="range" id="s-saving" min="1" max="30" step="1" value="10">
+        </div>
+        <div class="sbox">
+          <div class="stitle">Indicatieve uitsplitsing besparing</div>
+          <div class="srow"><span>Stand-by / nachtverbruik</span><span id="sb1">—</span></div>
+          <div class="srow"><span>Lekverliezen (stoom, perslucht)</span><span id="sb2">—</span></div>
+          <div class="srow"><span>Piekbelasting afvlakken</span><span id="sb3">—</span></div>
+          <div class="srow"><span>Totale energiebesparing / jaar</span><span id="sbt">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="ph-dot"></div><h2>Projectconfiguratie</h2></div>
+      <div class="pb">
+        <div class="field">
+          <div class="fl"><label>As-a-Service pakket</label></div>
+          <select id="s-pkg">
+            <option value="inzicht">Inzicht — €299/mnd</option>
+            <option value="controle" selected>Controle — €599/mnd</option>
+            <option value="partner">Partner — maatwerkprijsafspraak</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label>Installatiekosten (eenmalig)</label>
+            <span class="fv" id="v-install">€ 25.000</span>
+          </div>
+          <input type="range" id="s-install" min="1000" max="150000" step="500" value="25000">
+          <div class="fh">Hardware, engineering, installatie en inbedrijfstelling.</div>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label>Maandelijkse SLA / licentie</label>
+            <span class="fv" id="v-monthly">€ 599</span>
+          </div>
+          <input type="range" id="s-monthly" min="99" max="3000" step="50" value="599">
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <div class="fl">
+            <label>
+              Netcongestie-risico waarde
+              <span class="tipbtn" data-tip="Financiële waarde van het vermijden van netcongestie-problemen: boetes bij overschrijding transportcontract, kosten bij gedwongen productiestop, of de waarde van vrijgekomen netcapaciteit voor uitbreiding.">?</span>
+            </label>
+          </div>
+          <select id="s-grid">
+            <option value="0">Geen — niet van toepassing</option>
+            <option value="5000">Laag — ± €5.000/jr</option>
+            <option value="15000" selected>Middel — ± €15.000/jr</option>
+            <option value="30000">Hoog — ± €30.000/jr</option>
+            <option value="60000">Kritisch — ± €60.000/jr</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="fl">
+            <label>
+              EED / CSRD compliance-waarde
+              <span class="tipbtn" data-tip="Financiële waarde van voldoen aan rapportageverplichtingen: besparing op externe auditkosten, vermijden van boetes (tot €100.000 bij niet-naleving EED), en betere ESG-score voor financiering en aanbestedingen.">?</span>
+            </label>
+            <span class="fv" id="v-comp">€ 5.000</span>
+          </div>
+          <input type="range" id="s-comp" min="0" max="30000" step="500" value="5000">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+
+    <div class="print-only panel" style="padding:1rem;margin-bottom:1rem">
+      <strong id="pm-naam" style="font-size:15px"></strong><br>
+      <span style="color:var(--muted);font-size:12px">Contact: <span id="pm-contact"></span> · Sector: <span id="pm-sector"></span> · Datum: <span id="pm-datum"></span></span>
+    </div>
+
+    <div id="badge" class="badge">Industrie</div>
+
+    <div class="krow">
+      <div class="kc"><div class="kl">Jaarlijkse besparing</div><div class="kv" id="r-besparing">—</div><div class="ks">energie + overig voordeel</div></div>
+      <div class="kc"><div class="kl">Investering jaar 1</div><div class="kv" id="r-invest">—</div><div class="ks">installatie + SLA</div></div>
+      <div class="kc"><div class="kl">Terugverdientijd</div><div class="kv" id="r-payback">—</div><div class="ks">break-even punt</div></div>
+      <div class="kc hi"><div class="kl">3-jaar netto voordeel</div><div class="kv" id="r-npv">—</div><div class="ks">na alle kosten</div></div>
+    </div>
+
+    <div id="verdict" class="verdict"></div>
+
+    <!-- Cashflow -->
+    <div class="cp">
+      <div class="ch"><div class="cdot"></div>Cumulatief rendement per jaar</div>
+      <div class="cb" id="cashflow-chart"></div>
+    </div>
+
+    <!-- Baten + kosten naast elkaar -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div class="cp" style="margin-bottom:0">
+        <div class="ch"><div class="cdot"></div>Verdeling jaarlijkse baten</div>
+        <div class="cb" id="baten-chart"></div>
+      </div>
+      <div class="cp" style="margin-bottom:0">
+        <div class="ch"><div class="cdot"></div>Kostenverdeling jaar 1</div>
+        <div class="cb" id="kosten-chart"></div>
+      </div>
+    </div>
+
+    <!-- Scenario -->
+    <div class="cp">
+      <div class="ch"><div class="cdot"></div>Scenario-analyse — impact van verschillende besparingspercentages</div>
+      <div class="cb">
+        <table class="stbl" id="scen-tbl">
+          <thead><tr><th>Scenario</th><th>Besparing</th><th>Energiebesparing/jr</th><th>Totaal voordeel/jr</th><th>Terugverdientijd</th><th>3-jr netto</th></tr></thead>
+          <tbody id="scen-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Benchmark -->
+    <div class="cp">
+      <div class="ch"><div class="cdot"></div>Benchmark — uw situatie vs. sector gemiddelden</div>
+      <div class="cb" id="bench-wrap"></div>
+    </div>
+
+    <!-- Maandelijks -->
+    <div class="cp">
+      <div class="ch"><div class="cdot"></div>Maandelijkse energiekosten — voor vs. na implementatie</div>
+      <div class="cb" id="monthly-chart"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  <strong>Imbema Asset Solutions</strong> — ROI Calculator &nbsp;|&nbsp; Intern gebruik &nbsp;|&nbsp; Resultaten zijn indicatief op basis van ingevoerde gegevens
+</div>
+
+<script>
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+const q  = id => document.getElementById(id);
+const sv = (id,v) => q(id).value = v;
+const euro   = v => '€\u00a0' + Math.round(v).toLocaleString('nl-NL');
+const euroK  = v => { const r=Math.round(v); return Math.abs(r)>=1000 ? '€\u00a0'+(r/1000).toFixed(Math.abs(r)%1000===0?0:1).replace('.',',')+' K' : '€\u00a0'+r.toLocaleString('nl-NL'); };
+const mnd    = v => { const r=Math.round(v); return r<120?r+' mnd':'>10 jr'; };
+
+// ─── TOOLTIP ────────────────────────────────────────────────────────────────
+const tipEl = q('tip');
+document.querySelectorAll('.tipbtn').forEach(el => {
+  el.addEventListener('mouseenter', e => { tipEl.textContent = el.dataset.tip; tipEl.style.opacity = '1'; moveTip(e); });
+  el.addEventListener('mousemove', moveTip);
+  el.addEventListener('mouseleave', () => { tipEl.style.opacity = '0'; });
+});
+function moveTip(e) {
+  const m=14, w=tipEl.offsetWidth||260, h=tipEl.offsetHeight||60;
+  let x=e.clientX+m, y=e.clientY+m;
+  if(x+w>window.innerWidth-8) x=e.clientX-w-m;
+  if(y+h>window.innerHeight-8) y=e.clientY-h-m;
+  tipEl.style.left=x+'px'; tipEl.style.top=y+'px';
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────────────────
+const overlay = q('overlay');
+q('btn-help').addEventListener('click', () => {
+  overlay.classList.add('show');
+  overlay.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+});
+q('mclose').addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+function closeModal() {
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ─── UNIT & SLIDER CONVERSION ───────────────────────────────────────────────
+let unit = 'kwh'; // kwh or mwh
+
+// Consumption: slider 1–1000, real value depends on unit
+// kWh: 1–100 → ×1000 kWh, 101–1000 → 100k + (n-100)×10k
+// MWh: 1–100 → n MWh,       101–1000 → 100 + (n-100)×10
+function posToVal(pos) {
+  pos = Math.round(pos);
+  if(unit==='kwh') return pos<=100 ? pos*1000 : 100000+(pos-100)*10000;
+  else             return pos<=100 ? pos      : 100+(pos-100)*10;
+}
+function valToPos(val) {
+  if(unit==='kwh') return val<=100000 ? Math.round(val/1000)     : Math.round(100+(val-100000)/10000);
+  else             return val<=100    ? Math.round(val)           : Math.round(100+(val-100)/10);
+}
+function getMWh() { return unit==='kwh' ? posToVal(+q('s-cons').value)/1000 : posToVal(+q('s-cons').value); }
+
+// Price: slider 1–300, value = n/100 in kWh mode → €0.01–€3.00
+//        slider 1–300, value = n*10  in MWh mode → €10–€3000
+function getPricePerMWh() {
+  const n = +q('s-price').value;
+  return unit==='kwh' ? (n/100)*1000 : n*10;
+}
+function getPriceDisplay() {
+  const n = +q('s-price').value;
+  if(unit==='kwh') return '€\u00a0'+(n/100).toFixed(2).replace('.',',');
+  else             return '€\u00a0'+(n*10).toLocaleString('nl-NL');
+}
+
+q('btn-kwh').addEventListener('click', () => setUnit('kwh'));
+q('btn-mwh').addEventListener('click', () => setUnit('mwh'));
+
+function setUnit(u) {
+  const curMWh = getMWh();
+  unit = u;
+  q('btn-kwh').classList.toggle('on', u==='kwh');
+  q('btn-mwh').classList.toggle('on', u==='mwh');
+
+  // Update consumption slider
+  const newVal = u==='kwh' ? curMWh*1000 : curMWh;
+  q('s-cons').value = valToPos(newVal);
+  q('cons-lbl').textContent = u==='kwh' ? 'Jaarlijks energieverbruik (kWh)' : 'Jaarlijks energieverbruik (MWh)';
+
+  // Update price slider (keep same €/MWh value)
+  const curPriceMWh = getPricePerMWh();
+  if(u==='kwh') {
+    // new slider value = (€/kWh)*100, where €/kWh = curPriceMWh/1000
+    q('s-price').value = Math.min(300, Math.max(1, Math.round(curPriceMWh/1000*100)));
+    q('price-lbl').textContent = 'Energieprijs (€/kWh)';
+    q('h-price').textContent = 'Incl. netkosten & belastingen. Normaal ≈ €0,11–0,15/kWh · Piekprijzen tot €3,00/kWh';
+  } else {
+    // new slider value = curPriceMWh/10
+    q('s-price').value = Math.min(300, Math.max(1, Math.round(curPriceMWh/10)));
+    q('price-lbl').textContent = 'Energieprijs (€/MWh)';
+    q('h-price').textContent = 'Incl. netkosten & belastingen. Normaal ≈ €110–150/MWh · Piekprijzen tot €3.000/MWh';
+  }
+  calc();
+}
+
+// ─── SECTOR DEFAULTS ────────────────────────────────────────────────────────
+const DEF = {
+  industrie:{meters:30,mwh:5000, kwh:0.13,saving:12,install:40000,monthly:799,grid:15000,comp:8000,lbl:'Industrie',bVerbruik:5000,bBesparing:12,bPayback:14},
+  logistiek: {meters:25,mwh:3000, kwh:0.12,saving:10,install:35000,monthly:699,grid:30000,comp:5000,lbl:'Logistiek vastgoed',bVerbruik:3000,bBesparing:10,bPayback:18},
+  vastgoed:  {meters:20,mwh:800,  kwh:0.11,saving:8, install:22000,monthly:499,grid:5000, comp:5000,lbl:'Vastgoed',bVerbruik:800,bBesparing:8,bPayback:22},
+  recreatie: {meters:50,mwh:1200, kwh:0.115,saving:15,install:30000,monthly:599,grid:0,   comp:3000,lbl:'Recreatiepark',bVerbruik:1200,bBesparing:14,bPayback:16},
+  zorg:      {meters:15,mwh:600,  kwh:0.108,saving:9, install:18000,monthly:399,grid:0,   comp:8000,lbl:'Zorg & Onderwijs',bVerbruik:600,bBesparing:9,bPayback:20},
+};
+
+function applyDefaults() {
+  const d = DEF[q('s-sector').value]; if(!d) return;
+  sv('s-meters', d.meters);
+  const consVal = unit==='kwh' ? d.mwh*1000 : d.mwh;
+  q('s-cons').value = valToPos(consVal);
+  const priceN = unit==='kwh' ? Math.round(d.kwh*100) : Math.round(d.kwh*100);
+  // kWh: slider = kwh*100, MWh: slider = mwh_price/10 = kwh*100 (same scale)
+  q('s-price').value = Math.min(300, Math.max(1, priceN));
+  sv('s-saving', d.saving); sv('s-install', d.install);
+  sv('s-monthly', d.monthly); q('s-grid').value = d.grid; sv('s-comp', d.comp);
+}
+
+// ─── SIMPLE SVG BAR CHART ───────────────────────────────────────────────────
+function svgBar(items, height=22) {
+  const maxV = Math.max(...items.map(i=>i.v), 1);
+  return items.map(it => {
+    const pct = Math.max(Math.round((it.v/maxV)*100), it.v>0?8:0);
+    return `<div class="brow">
+      <div class="blbl">${it.l}</div>
+      <div class="btrack"><div class="bfill" style="width:${pct}%;background:${it.c}">
+        <span class="bval">${euroK(it.v)}</span>
+      </div></div>
+    </div>`;
+  }).join('');
+}
+
+function svgTimeline(years, vals) {
+  const maxA = Math.max(...vals.map(Math.abs), 1);
+  return years.map((y,i) => {
+    const v=vals[i], pct=Math.max(Math.round((Math.abs(v)/maxA)*100),3);
+    const c=v>=0?'#1B4F84':'#A32D2D', tc=v>=0?'var(--mid)':'var(--red)';
+    return `<div class="trow">
+      <div class="tq">${y}</div>
+      <div class="ttrack"><div class="tfill" style="width:${pct}%;background:${c}"></div></div>
+      <div class="tval" style="color:${tc}">${euroK(v)}</div>
+    </div>`;
+  }).join('');
+}
+
+function donutSVG(items, size=140) {
+  const total = items.reduce((a,b)=>a+b.v,0)||1;
+  const r=50, cx=70, cy=70;
+  let angle = -Math.PI/2;
+  let paths = '', legend = '';
+  items.forEach(it => {
+    if(it.v<=0) return;
+    const pct = it.v/total;
+    const a1=angle, a2=angle+pct*Math.PI*2;
+    const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2), y2=cy+r*Math.sin(a2);
+    const large=pct>0.5?1:0;
+    paths += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${it.c}" stroke="#fff" stroke-width="1.5"/>`;
+    angle = a2;
+  });
+  // inner circle (donut hole)
+  paths += `<circle cx="${cx}" cy="${cy}" r="30" fill="white"/>`;
+  // legend
+  items.filter(i=>i.v>0).forEach(it => {
+    legend += `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-bottom:3px">
+      <div style="width:10px;height:10px;border-radius:2px;background:${it.c};flex-shrink:0"></div>
+      <span>${it.l}: ${Math.round(it.v/total*100)}%</span></div>`;
+  });
+  return `<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 140 140">${paths}</svg>
+    <div style="flex:1">${legend}</div>
+  </div>`;
+}
+
+// ─── MAIN CALC ───────────────────────────────────────────────────────────────
+function calc() {
+  const sector  = q('s-sector').value;
+  const d       = DEF[sector];
+  const meters  = +q('s-meters').value;
+  const mwh     = getMWh();
+  const consRaw = posToVal(+q('s-cons').value);
+  const pMWh    = getPricePerMWh();
+  const saving  = +q('s-saving').value;
+  const install = +q('s-install').value;
+  const monthly = +q('s-monthly').value;
+  const grid    = +q('s-grid').value;
+  const comp    = +q('s-comp').value;
+
+  // ── Display labels ──
+  q('v-meters').textContent = meters;
+  q('v-cons').textContent   = consRaw.toLocaleString('nl-NL') + (unit==='kwh'?' kWh':' MWh');
+  q('h-cons').textContent   = unit==='kwh'
+    ? `= ${Math.round(mwh).toLocaleString('nl-NL')} MWh · Klein kantoor ≈ 50k–200k kWh · Fabriek 1M–50M kWh`
+    : `= ${Math.round(mwh*1000).toLocaleString('nl-NL')} kWh · Klein kantoor ≈ 100 MWh · Fabriek 1.000–50.000 MWh`;
+  q('v-price').textContent  = getPriceDisplay();
+  q('v-saving').textContent = saving+'%';
+  q('v-install').textContent= euro(install);
+  q('v-monthly').textContent= euro(monthly);
+  q('v-comp').textContent   = euro(comp);
+  q('badge').textContent    = d?.lbl||sector;
+
+  // ── Core calc ──
+  const eSav    = mwh * pMWh * (saving/100);
+  const totBen  = eSav + grid + comp;
+  const annCost = monthly * 12;
+  const yr1cost = install + annCost;
+  const payback = totBen>0 ? Math.round(install/(totBen/12)) : 999;
+  const npv3    = totBen*3 - install - annCost*3;
+  const annEnergy = mwh * pMWh;
+
+  // ── Saving breakdown ──
+  q('sb1').textContent = euroK(eSav*.40);
+  q('sb2').textContent = euroK(eSav*.35);
+  q('sb3').textContent = euroK(eSav*.25);
+  q('sbt').textContent = euroK(eSav);
+
+  // ── KPI's ──
+  q('r-besparing').textContent = euroK(totBen);
+  q('r-invest').textContent    = euroK(yr1cost);
+  q('r-payback').textContent   = mnd(payback);
+  q('r-npv').textContent       = euroK(npv3);
+
+  // ── Verdict ──
+  const vEl = q('verdict');
+  let bg, ic, col, msg;
+  if(payback<=18)     { bg='var(--green-bg)';ic='✓';col='var(--green)'; msg=`<strong>Uitstekende business case.</strong> Terugverdientijd van <strong>${payback} maanden</strong> — ruim onder 18 maanden. Sterk argument richting CFO en directie. 3-jaar netto voordeel: <strong>${euroK(npv3)}</strong>.`; }
+  else if(payback<=36){ bg='var(--blue-bg)'; ic='i';col='var(--mid)';   msg=`<strong>Solide business case.</strong> Terugverdientijd van <strong>${payback} maanden</strong>. Benadruk het 3-jaar netto voordeel van <strong>${euroK(npv3)}</strong> en de compliance-waarde als extra overtuigingsargument.`; }
+  else                { bg='var(--amber-bg)';ic='!';col='var(--amber)'; msg=`<strong>Business case verdient versterking.</strong> Terugverdientijd van <strong>${payback} maanden</strong> is aan de lange kant. Verlaag installatiekosten, verhoog besparingspercentage of voeg netcongestie-risico toe.`; }
+  vEl.style.background = bg;
+  vEl.innerHTML = `<div class="vi" style="background:${col}">${ic}</div><p style="font-size:13px;line-height:1.6;color:var(--text)">${msg}</p>`;
+
+  // ── Cashflow bars (5 jaar) ──
+  const yrs = ['Jaar 1','Jaar 2','Jaar 3','Jaar 4','Jaar 5'];
+  const cum = yrs.map((_,i) => totBen*(i+1) - install - annCost*(i+1));
+  q('cashflow-chart').innerHTML = svgTimeline(yrs, cum);
+
+  // ── Baten donut ──
+  q('baten-chart').innerHTML = donutSVG([
+    {l:'Energiebesparing',v:eSav,  c:'#002147'},
+    {l:'Netcongestie',    v:grid,  c:'#1B4F84'},
+    {l:'EED/CSRD',        v:comp,  c:'#00AEEF'},
+  ]);
+
+  // ── Kosten donut ──
+  q('kosten-chart').innerHTML = donutSVG([
+    {l:'Installatie',v:install, c:'#002147'},
+    {l:'SLA jaar 1', v:annCost, c:'#2E75B6'},
+  ]);
+
+  // ── Scenario tabel ──
+  const scens = [
+    {lbl:'Pessimistisch',pct:Math.max(1,saving-5)},
+    {lbl:'Verwacht ★',   pct:saving},
+    {lbl:'Optimistisch', pct:Math.min(30,saving+5)},
+    {lbl:'Maximaal',     pct:Math.min(30,saving+10)},
+  ];
+  q('scen-body').innerHTML = scens.map((sc,i) => {
+    const es=mwh*pMWh*(sc.pct/100), tb=es+grid+comp;
+    const pb=tb>0?Math.round(install/(tb/12)):999, n3=tb*3-install-annCost*3;
+    const pc=pb<=18?'g':pb<=36?'w':'r';
+    const bold=i===1?'style="font-weight:700"':'';
+    return `<tr ${bold}><td>${sc.lbl}</td><td class="n">${sc.pct}%</td><td class="n">${euroK(es)}</td><td class="n">${euroK(tb)}</td><td class="n ${pc}">${mnd(pb)}</td><td class="n ${n3>=0?'g':'r'}">${euroK(n3)}</td></tr>`;
+  }).join('');
+
+  // ── Benchmark ──
+  if(d) {
+    const items = [
+      {lbl:'Energieverbruik (MWh)', you:Math.round(mwh),    avg:d.bVerbruik,  unit:'MWh', lowerBetter:false},
+      {lbl:'Besparing door inzicht', you:saving,             avg:d.bBesparing, unit:'%',   lowerBetter:false},
+      {lbl:'Terugverdientijd',       you:Math.min(payback,60),avg:d.bPayback,  unit:'mnd', lowerBetter:true},
+    ];
+    q('bench-wrap').innerHTML = items.map(it => {
+      const maxV = Math.max(it.you, it.avg)*1.15||1;
+      const yp = Math.round((it.you/maxV)*100);
+      const ap = Math.round((it.avg/maxV)*100);
+      const better = it.lowerBetter ? it.you<=it.avg : it.you>=it.avg;
+      const yc = better ? '#00AEEF' : '#1B4F84';
+      return `<div class="bench-row">
+        <div class="bench-lbl">${it.lbl}</div>
+        <div class="bench-bars">
+          <div style="font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:2px">
+            <span style="color:${yc};font-weight:600">U: ${it.you} ${it.unit}</span>
+            <span>Sector gem.: ${it.avg} ${it.unit}</span>
+          </div>
+          <div style="position:relative;height:9px;background:var(--bg);border-radius:3px;border:1px solid var(--border);overflow:hidden">
+            <div style="position:absolute;height:100%;width:${ap}%;background:var(--border);border-radius:3px"></div>
+            <div style="position:absolute;height:100%;width:${yp}%;background:${yc};border-radius:3px;opacity:.9"></div>
+          </div>
+        </div>
+        <div class="bench-val" style="color:${yc}">${it.you} ${it.unit}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Maandelijks ──
+  const mnds = ['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+  const baseM = annEnergy/12, savedM = eSav/12;
+  const maxM  = Math.max(baseM, baseM-savedM+monthly, 1);
+  q('monthly-chart').innerHTML = `
+    <div style="margin-bottom:.75rem">
+      ${mnds.map(m => `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <div style="font-size:11px;color:var(--muted);width:28px;flex-shrink:0">${m}</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+            <div style="height:10px;background:var(--bg);border-radius:2px;overflow:hidden;border:1px solid var(--border)">
+              <div style="height:100%;width:${Math.round((baseM/maxM)*100)}%;background:#002147;border-radius:2px"></div>
+            </div>
+            <div style="height:10px;background:var(--bg);border-radius:2px;overflow:hidden;border:1px solid var(--border)">
+              <div style="height:100%;width:${Math.round(((baseM-savedM+monthly)/maxM)*100)}%;background:#00AEEF;border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="font-size:11px;font-family:'Consolas','Courier New',monospace;color:var(--mid);width:70px;text-align:right">${euroK(baseM-savedM+monthly)}</div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:1.5rem;font-size:11px;color:var(--muted)">
+      <span><span style="display:inline-block;width:10px;height:10px;background:#002147;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Vóór implementatie: ${euroK(baseM)}/mnd</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#00AEEF;border-radius:2px;margin-right:4px;vertical-align:middle"></span>Ná implementatie incl. SLA: ${euroK(baseM-savedM+monthly)}/mnd</span>
+    </div>`;
+
+  // ── Print meta ──
+  q('pm-naam').textContent    = q('k-naam').value||'—';
+  q('pm-contact').textContent = q('k-contact').value||'—';
+  q('pm-sector').textContent  = d?.lbl||sector;
+  q('pm-datum').textContent   = new Date().toLocaleDateString('nl-NL');
+}
+
+// ─── SAVE HTML ───────────────────────────────────────────────────────────────
+q('btn-save').addEventListener('click', () => {
+  const html = document.documentElement.outerHTML;
+  const blob = new Blob([html],{type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const naam = (q('k-naam').value||'imbema-roi').replace(/[^a-z0-9]/gi,'-').toLowerCase();
+  a.href=url; a.download=naam+'-roi-berekening.html'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
+['s-sector','s-meters','s-cons','s-price','s-saving','s-install','s-monthly','s-grid','s-comp','s-pkg','k-naam','k-contact']
+  .forEach(id => {
+    const el = q(id);
+    if(!el) return;
+    el.addEventListener('input', () => { if(id==='s-sector') applyDefaults(); else calc(); });
+    el.addEventListener('change', () => { if(id==='s-sector') applyDefaults(); else calc(); });
+  });
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+applyDefaults();
+calc();
+</script>
+</body>
+</html>
